@@ -1,4 +1,4 @@
-# VSCode Nautilus Extension
+# VSCode and Antigravity Nautilus Extension
 #
 # Place me in ~/.local/share/nautilus-python/extensions/,
 # ensure you have python-nautilus package, restart Nautilus, and enjoy :)
@@ -9,19 +9,28 @@ from gi.repository import Nautilus, GObject
 from subprocess import call
 import os
 
-# path to vscode
+# Paths to the executables
 VSCODE = 'code'
+ANTIGRAVITY = 'antigravity-ide'
 
-# what name do you want to see in the context menu?
-VSCODENAME = 'Code'
+# Names for the context menu items
+VSCODE_NAME = 'Code'
+ANTIGRAVITY_NAME = 'Antigravity'
 
-# always create new window?
-NEWWINDOW = False
+# Always create new window?
+NEW_WINDOW = False
 
 
 class VSCodeExtension(GObject.GObject, Nautilus.MenuProvider):
+    """
+    Nautilus extension to add 'Open in Code' and 'Open in Antigravity'
+    options to context menus.
+    """
 
-    def launch_vscode(self, menu, files):
+    def launch_editor(self, menu, executable, files):
+        """
+        Launches the specified editor executable with the paths of selected files.
+        """
         safepaths = ''
         args = ''
 
@@ -29,34 +38,57 @@ class VSCodeExtension(GObject.GObject, Nautilus.MenuProvider):
             filepath = file.get_location().get_path()
             safepaths += '"' + filepath + '" '
 
-            # If one of the files we are trying to open is a folder
-            # create a new instance of vscode
+            # If one of the files we are trying to open is a folder,
+            # create a new instance of the editor.
             if os.path.isdir(filepath) and os.path.exists(filepath):
                 args = '--new-window '
 
-        if NEWWINDOW:
+        if NEW_WINDOW:
             args = '--new-window '
 
-        call(VSCODE + ' ' + args + safepaths + '&', shell=True)
+        call(executable + ' ' + args + safepaths + '&', shell=True)
 
     def get_file_items(self, *args):
+        """
+        Returns menu items when one or more files are selected.
+        """
         files = args[-1]
-        item = Nautilus.MenuItem(
+
+        vscode_item = Nautilus.MenuItem(
             name='VSCodeOpen',
-            label='Open in ' + VSCODENAME,
+            label='Open in ' + VSCODE_NAME,
             tip='Opens the selected files with VSCode'
         )
-        item.connect('activate', self.launch_vscode, files)
+        vscode_item.connect('activate', self.launch_editor, VSCODE, files)
 
-        return [item]
+        antigravity_item = Nautilus.MenuItem(
+            name='AntigravityOpen',
+            label='Open in ' + ANTIGRAVITY_NAME,
+            tip='Opens the selected files with Antigravity IDE'
+        )
+        antigravity_item.connect('activate', self.launch_editor, ANTIGRAVITY, files)
+
+        return [vscode_item, antigravity_item]
 
     def get_background_items(self, *args):
+        """
+        Returns menu items when right-clicking the background of a directory.
+        """
         file_ = args[-1]
-        item = Nautilus.MenuItem(
+
+        vscode_item = Nautilus.MenuItem(
             name='VSCodeOpenBackground',
-            label='Open in ' + VSCODENAME,
+            label='Open in ' + VSCODE_NAME,
             tip='Opens the current directory in VSCode'
         )
-        item.connect('activate', self.launch_vscode, [file_])
+        vscode_item.connect('activate', self.launch_editor, VSCODE, [file_])
 
-        return [item]
+        antigravity_item = Nautilus.MenuItem(
+            name='AntigravityOpenBackground',
+            label='Open in ' + ANTIGRAVITY_NAME,
+            tip='Opens the current directory in Antigravity IDE'
+        )
+        antigravity_item.connect('activate', self.launch_editor, ANTIGRAVITY, [file_])
+
+        return [vscode_item, antigravity_item]
+
