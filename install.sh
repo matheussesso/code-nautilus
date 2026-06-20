@@ -43,18 +43,62 @@ else
     echo "Failed to find python-nautilus, please install it manually."
 fi
 
+# Prompt user for editors to enable
+echo "--------------------------------------------------"
+echo "Configure editors to enable in Nautilus context menu:"
+enabled_editors=()
+
+read -p "Enable VS Code? (Y/n): " ans_vscode
+if [[ -z "$ans_vscode" || "$ans_vscode" =~ ^[Yy]$ || "$ans_vscode" =~ ^[Yy][Ee][Ss]$ ]]; then
+    enabled_editors+=("VSCode")
+fi
+
+read -p "Enable Antigravity IDE? (Y/n): " ans_anti
+if [[ -z "$ans_anti" || "$ans_anti" =~ ^[Yy]$ || "$ans_anti" =~ ^[Yy][Ee][Ss]$ ]]; then
+    enabled_editors+=("Antigravity")
+fi
+
+read -p "Enable Cursor? (Y/n): " ans_cursor
+if [[ -z "$ans_cursor" || "$ans_cursor" =~ ^[Yy]$ || "$ans_cursor" =~ ^[Yy][Ee][Ss]$ ]]; then
+    enabled_editors+=("Cursor")
+fi
+
+# Write config JSON
+mkdir -p ~/.config/code-nautilus
+json_content="{\"enabled_editors\": ["
+first=true
+for ed in "${enabled_editors[@]}"; do
+    if [ "$first" = true ]; then
+        first=false
+    else
+        json_content="$json_content, "
+    fi
+    json_content="$json_content\"$ed\""
+done
+json_content="$json_content]}"
+
+echo "$json_content" > ~/.config/code-nautilus/config.json
+echo "Saved configuration to ~/.config/code-nautilus/config.json"
+echo "--------------------------------------------------"
+
 # Remove previous version and setup folder
 echo "Removing previous version (if found)..."
 mkdir -p ~/.local/share/nautilus-python/extensions
 rm -f ~/.local/share/nautilus-python/extensions/VSCodeExtension.py
 rm -f ~/.local/share/nautilus-python/extensions/code-nautilus.py
 
-# Download and install the extension
-echo "Downloading newest version..."
-wget -q -O ~/.local/share/nautilus-python/extensions/code-nautilus.py https://raw.githubusercontent.com/harry-cpp/code-nautilus/master/code-nautilus.py
+# Install the extension file
+if [ -f "./code-nautilus.py" ]; then
+    echo "Installing local version of the extension..."
+    cp ./code-nautilus.py ~/.local/share/nautilus-python/extensions/code-nautilus.py
+else
+    echo "Downloading newest version from fork..."
+    wget -q -O ~/.local/share/nautilus-python/extensions/code-nautilus.py https://raw.githubusercontent.com/matheussesso/code-nautilus/master/code-nautilus.py
+fi
 
 # Restart nautilus
 echo "Restarting nautilus..."
 nautilus -q
 
 echo "Installation Complete"
+

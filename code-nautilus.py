@@ -8,6 +8,8 @@
 from gi.repository import Nautilus, GObject
 from subprocess import call
 import os
+import json
+import shutil
 
 # Editors configuration list
 EDITORS = [
@@ -36,6 +38,33 @@ EDITORS = [
 
 # Always create new window?
 NEW_WINDOW = False
+
+
+def get_active_editors():
+    """
+    Returns a list of editors that are enabled in user configuration,
+    or falls back to checking if their executables are present in the PATH.
+    """
+    enabled_ids = None
+    config_path = os.path.expanduser('~/.config/code-nautilus/config.json')
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+                enabled_ids = config.get('enabled_editors')
+        except Exception:
+            pass
+
+    active = []
+    for editor in EDITORS:
+        if enabled_ids is not None:
+            if editor['id'] in enabled_ids:
+                active.append(editor)
+        else:
+            # Fallback: only enable if the executable is installed/in PATH
+            if shutil.which(editor['exec']):
+                active.append(editor)
+    return active
 
 
 class VSCodeExtension(GObject.GObject, Nautilus.MenuProvider):
@@ -72,7 +101,7 @@ class VSCodeExtension(GObject.GObject, Nautilus.MenuProvider):
         files = args[-1]
         items = []
 
-        for editor in EDITORS:
+        for editor in get_active_editors():
             item = Nautilus.MenuItem(
                 name=f"{editor['id']}Open",
                 label=f"Open in {editor['name']}",
@@ -90,7 +119,7 @@ class VSCodeExtension(GObject.GObject, Nautilus.MenuProvider):
         file_ = args[-1]
         items = []
 
-        for editor in EDITORS:
+        for editor in get_active_editors():
             item = Nautilus.MenuItem(
                 name=f"{editor['id']}OpenBackground",
                 label=f"Open in {editor['name']}",
@@ -100,5 +129,3 @@ class VSCodeExtension(GObject.GObject, Nautilus.MenuProvider):
             items.append(item)
 
         return items
-
-
