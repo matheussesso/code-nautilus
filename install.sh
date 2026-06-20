@@ -48,17 +48,17 @@ echo "--------------------------------------------------"
 echo "Configure editors to enable in Nautilus context menu:"
 enabled_editors=()
 
-read -p "Enable VS Code? (Y/n): " ans_vscode
+read -p "Enable VS Code? (Y/n): " ans_vscode < /dev/tty
 if [[ -z "$ans_vscode" || "$ans_vscode" =~ ^[Yy]$ || "$ans_vscode" =~ ^[Yy][Ee][Ss]$ ]]; then
     enabled_editors+=("VSCode")
 fi
 
-read -p "Enable Antigravity IDE? (Y/n): " ans_anti
+read -p "Enable Antigravity IDE? (Y/n): " ans_anti < /dev/tty
 if [[ -z "$ans_anti" || "$ans_anti" =~ ^[Yy]$ || "$ans_anti" =~ ^[Yy][Ee][Ss]$ ]]; then
     enabled_editors+=("Antigravity")
 fi
 
-read -p "Enable Cursor? (Y/n): " ans_cursor
+read -p "Enable Cursor? (Y/n): " ans_cursor < /dev/tty
 if [[ -z "$ans_cursor" || "$ans_cursor" =~ ^[Yy]$ || "$ans_cursor" =~ ^[Yy][Ee][Ss]$ ]]; then
     enabled_editors+=("Cursor")
 fi
