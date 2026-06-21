@@ -15,7 +15,7 @@ import shutil
 EDITORS = [
     {
         'id': 'VSCode',
-        'name': 'Code',
+        'name': 'VSCode',
         'exec': 'code',
         'tip': 'Opens the selected files with VSCode',
         'tip_bg': 'Opens the current directory in VSCode'
